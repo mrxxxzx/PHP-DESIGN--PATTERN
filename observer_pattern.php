@@ -1,0 +1,82 @@
+<?php
+/**
+ * 观察者模式，定义了一种一对多的依赖关系，让多个观察者对象同时监听某一个主题对象。这个主题对象在状态发生变化时，会通知所有观察者对象，使它们能够自动更新自己。
+ * 将一个系统分割成一系列相互协作的类有一个很不好的副作用，那就是要维护相关对象间的一致性。我们不希望为了维持一致性而使各类紧密耦合，这样会给维护、扩展和重用都带来不便。
+ * 观察者模式所做的工作其实就是在接触耦合。让耦合的双方都依赖于抽象，而不是依赖于具体。从而使得各自的变化都不会影响另一边的变化。
+ * https://www.runoob.com/design-pattern/observer-pattern.html
+ */
+abstract class Observer
+{
+    abstract function update();
+}
+
+
+abstract class Subject {
+
+    private $observers = [];
+
+    public function attach(Observer $observer)
+    {
+        array_push($this->observers,$observer);
+    }
+
+    public function detatch($observer)
+    {
+        foreach($this->observers as $key => $object)
+        {
+            if($observer === $object){
+                unset($this->observers[$key]);
+            }
+        }
+    }
+
+    public function notify()
+    {
+        foreach($this->observers as $object)
+        {
+            $object->update();
+        }
+    }
+
+}
+
+class ConcreteSubject extends Subject
+{
+    private $subjectState;
+    public function setState($state)
+    {
+        $this->subjectState = $state;
+    }
+
+    public function getState()
+    {
+        return $this->subjectState;
+    }
+}
+
+class ConcreteObserver extends Observer
+{
+    private $name;
+    private $subject;
+
+    function __construct(ConcreteSubject $subject, $name)
+    {
+        $this->subject = $subject;
+        $this->name = $name;
+    }
+
+    public function update()
+    {
+        echo "观察者 ".$this->name."的新状态是:".$this->subject->getState()."\n";
+    }
+}
+
+
+$s = new ConcreteSubject();
+$s->attach(new ConcreteObserver($s, "x"));
+$s->attach(new ConcreteObserver($s, "y"));
+$z = new ConcreteObserver($s, "z");
+$s->attach($z);
+$s->detatch($z);
+$s->setState('ABC');
+$s->notify();
